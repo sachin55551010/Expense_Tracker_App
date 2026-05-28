@@ -1,46 +1,45 @@
-import { Link } from "react-router-dom";
-import { useAuth } from "../store/userAuth";
+import { Wallet, LogOut } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
 
 export const Navbar = () => {
-  const { logout } = useAuth();
-  const authUser = useAuth((state) => state.authUser);
-  const name = (authUser as { user?: { name?: string } })?.user?.name;
-  console.log(name);
+  const { logout, authUser } = useAuthStore();
+  const name = authUser?.name;
 
   return (
-    <nav className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-4 fixed w-full">
-      <div className="text-lg font-semibold tracking-tight text-zinc-900">
-        ExpenseTracker
-      </div>
-
-      {authUser ? (
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-zinc-600">{name}</span>
-
-          <button
-            onClick={logout}
-            className="rounded-xl border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100"
-          >
-            Logout
-          </button>
-        </div>
-      ) : (
+    <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-slate-900/80 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-4">
+        {/* Logo Section */}
         <div className="flex items-center gap-3">
-          <Link
-            to="/login"
-            className="rounded-xl border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100"
-          >
-            Login
-          </Link>
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-500 to-cyan-400 shadow-lg shadow-cyan-500/20">
+            <Wallet className="h-6 w-6 text-white" />
+          </div>
 
-          <Link
-            to="/signup"
-            className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
-          >
-            Signup
-          </Link>
+          <div>
+            <h1 className="text-lg font-bold tracking-wide text-white">
+              Expense Tracker
+            </h1>
+            <p className="text-xs text-slate-400">
+              Manage your finances smartly
+            </p>
+          </div>
         </div>
-      )}
+
+        {/* Right Section */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 rounded-2xl py-2 ">
+            {/* name */}
+            <span className="text-slate-400 font-black">{name}</span>
+            {/* Logout Button */}
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 rounded-2xl bg-linear-to-r from-red-500 to-pink-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-red-500/30 active:scale-95"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
     </nav>
   );
 };

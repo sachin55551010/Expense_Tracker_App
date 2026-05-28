@@ -19,6 +19,17 @@ model User {
   password   String
   createdAt  DateTime  @default(now())
   expenses   Expense[]
+  incomes    Income[]
+}
+
+model Income {
+  id          Int       @id @default(autoincrement())
+  amount      Float
+  source      String
+  description String?
+  date        DateTime  @default(now())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Expense {

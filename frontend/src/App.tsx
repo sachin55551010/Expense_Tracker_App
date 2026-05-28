@@ -1,26 +1,25 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import "./App.css";
-import { Navbar } from "./components/Navbar";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { HomePage } from "./pages/HomePage";
+import { Toaster } from "react-hot-toast";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
-import { HomePage } from "./pages/HomePage";
-import { useAuth } from "./store/userAuth";
 import { useEffect } from "react";
+import { useAuthStore } from "./store/useAuthStore";
+
+import { LoadingAnimation } from "./components/LoadingAnimation";
 
 function App() {
-  const { checkAuth, isCheckAuth } = useAuth();
-  const authUser = useAuth((state) => state.authUser);
+  const { authUser, checkAuth, ischeckingAuth } = useAuthStore();
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  if (isCheckAuth && !authUser) {
-    return <h1>Checking Authentication...</h1>;
+  if (ischeckingAuth && !authUser) {
+    return <LoadingAnimation />;
   }
 
   return (
-    <main className="App">
-      <Navbar />
+    <div>
       <Routes>
         <Route
           path="/"
@@ -35,7 +34,8 @@ function App() {
           element={!authUser ? <SignupPage /> : <Navigate to="/" />}
         />
       </Routes>
-    </main>
+      <Toaster />
+    </div>
   );
 }
 

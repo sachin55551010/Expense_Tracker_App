@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 
 interface UserPayload {
   id: number;
+  name: string;
+  email: string;
 }
 export const sendCookie = (
   user: UserPayload,
@@ -20,6 +22,7 @@ export const sendCookie = (
       secure: process.env.NODE_ENV === "development" ? false : true,
     })
     .json({
+      user,
       success: true,
       message,
     });

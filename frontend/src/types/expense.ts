@@ -1,5 +1,8 @@
 export interface ExpenseData {
+  id: number;
   category: string;
-  description?: string;
   amount: number;
+  description: string;
+  date: string;
+  userId: number;
 }
