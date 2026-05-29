@@ -2,7 +2,6 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import dotenv from "dotenv";
 import { PrismaClient } from "../../generated/prisma/client.js";
 dotenv.config();
-console.log("checking data bse url in prisma.js : ", process.env.DATABASE_URL);
 
 const connectionString = process.env.DATABASE_URL;
 
