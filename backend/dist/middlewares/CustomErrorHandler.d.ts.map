@@ -1,1 +1,0 @@
-{"version":3,"file":"CustomErrorHandler.d.ts","sourceRoot":"","sources":["../../src/middlewares/CustomErrorHandler.ts"],"names":[],"mappings":"AAAA,qBAAa,kBAAmB,SAAQ,KAAK;IAElC,UAAU,EAAE,MAAM;IAClB,OAAO,EAAE,MAAM;gBADf,UAAU,EAAE,MAAM,EAClB,OAAO,EAAE,MAAM;CAKzB"}

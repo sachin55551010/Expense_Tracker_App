@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { AuthRequest } from "../middlewares/checkAuth.js";
-import prisma from "../utils/prisma.js";
+import { prisma } from "../utils/prisma.js";
 import { CustomErrorHandler } from "../middlewares/CustomErrorHandler.js";
 
 // ? add new expense

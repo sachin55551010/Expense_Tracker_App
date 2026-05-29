@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { CustomErrorHandler } from "../middlewares/CustomErrorHandler.js";
-import prisma from "../utils/prisma.js";
 import bcrypt from "bcryptjs";
 import { sendCookie } from "../utils/sendCookie.js";
 import { AuthRequest } from "../middlewares/checkAuth.js";
+import { prisma } from "../utils/prisma.js";
 
 // ? function to create a new user
 export const createUser = async (

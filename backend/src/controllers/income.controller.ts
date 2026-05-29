@@ -1,7 +1,7 @@
 import { NextFunction, Response } from "express";
 import { AuthRequest } from "../middlewares/checkAuth.js";
 import { CustomErrorHandler } from "../middlewares/CustomErrorHandler.js";
-import prisma from "../utils/prisma.js";
+import { prisma } from "../utils/prisma.js";
 
 // ? controller for income related operations
 export const addIncome = async (

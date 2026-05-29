@@ -1,1 +1,0 @@
-{"version":3,"file":"sendCookie.d.ts","sourceRoot":"","sources":["../../../src/utils/sendCookie.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAGnC,UAAU,WAAW;IACnB,EAAE,EAAE,MAAM,CAAC;IACX,IAAI,EAAE,MAAM,CAAC;IACb,KAAK,EAAE,MAAM,CAAC;CACf;AACD,eAAO,MAAM,UAAU,GACrB,MAAM,WAAW,EACjB,KAAK,QAAQ,EACb,SAAS,MAAM,SAiBhB,CAAC"}

@@ -4,8 +4,7 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -23,7 +22,7 @@ model User {
 }
 
 model Income {
-  id          Int       @id @default(autoincrement())
+ id          Int       @id @default(autoincrement())
   amount      Float
   source      String
   description String?
