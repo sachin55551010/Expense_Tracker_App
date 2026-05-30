@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { FaIndianRupeeSign } from "react-icons/fa6";
-import { FiCalendar, FiTag } from "react-icons/fi";
-import { useIncomeAuthStore } from "../../store/useIncomeAuthStore";
+import { FiCalendar } from "react-icons/fi";
+import { useIncomeStore } from "../../store/useIncomeStore";
 import { useEffect } from "react";
 
 import type { IncomeData } from "../../types/income";
@@ -11,7 +11,7 @@ interface IncomeTableProps {
 }
 
 export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
-  const { getAllIncomes, allIncomes, isIncomeLoading } = useIncomeAuthStore();
+  const { getAllIncomes, allIncomes, isIncomeLoading } = useIncomeStore();
 
   useEffect(() => {
     getAllIncomes();
@@ -21,8 +21,15 @@ export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
 
   const totalAmount = allIncomes?.totalIncome;
 
+  const incomeCategories: Record<string, string> = {
+    Salary: "💼",
+    "Freelance Income": "💻",
+    Rent: "🏠",
+    Business: "🏢",
+    Others: "💰",
+  };
   return (
-    <div className="rounded-2xl border border-zinc-200 p-2 shadow-sm">
+    <div className="rounded-2xl border border-zinc-200 p-2 shadow-sm w-full">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div>
@@ -36,7 +43,7 @@ export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
           <p className="text-[10px] text-zinc-500">Total</p>
 
           {isIncomeLoading ? (
-            <div className="mt-1 h-5 w-20 animate-pulse rounded bg-emerald-200"></div>
+            <div className="mt-1 h-5 w-15 animate-pulse rounded bg-emerald-200"></div>
           ) : (
             <div className="flex items-center text-sm font-bold text-emerald-600">
               <FaIndianRupeeSign className="mr-1 text-[10px]" />
@@ -105,8 +112,8 @@ export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
                   {/* Source */}
                   <td className="rounded-l-xl px-2 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="rounded-lg bg-emerald-100 p-2 text-emerald-600">
-                        <FiTag size={13} />
+                      <div className="rounded-lg p-2 text-emerald-600">
+                        {incomeCategories[income.source]}
                       </div>
 
                       <p className="text-xs font-medium text-zinc-700">

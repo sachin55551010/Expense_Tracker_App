@@ -36,7 +36,7 @@ It means:
   resetIncomeState: () => void;
 }
 
-export const useIncomeAuthStore = create<AuthStore>((set) => ({
+export const useIncomeStore = create<AuthStore>((set) => ({
   isIncomeAdding: false,
 
   allIncomes: {

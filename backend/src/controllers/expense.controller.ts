@@ -1,94 +1,181 @@
-import { NextFunction, Request, Response } from "express";
-
+import { NextFunction, Response } from "express";
 import { AuthRequest } from "../middlewares/checkAuth.js";
-import { prisma } from "../utils/prisma.js";
 import { CustomErrorHandler } from "../middlewares/CustomErrorHandler.js";
+import { prisma } from "../utils/prisma.js";
 
-// ? add new expense
-export const addNewExpense = async (
+// ? Add Expense
+export const addExpense = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
-) => {
+): Promise<void> => {
   try {
-    const { category, amount, description, date } = req.body;
+    const { amount, description, category, date } = req.body;
+    const userId = req.user?.id;
 
-    if (!category || !amount || !description) {
-      return next(new CustomErrorHandler(400, "All fields are required"));
+    if (!amount || !category) {
+      return next(
+        new CustomErrorHandler(400, "Amount and category are required"),
+      );
+    }
+
+    if (!userId) {
+      return next(new CustomErrorHandler(401, "User not authenticated"));
     }
 
     const expense = await prisma.expense.create({
       data: {
-        category,
         amount,
         description,
+        category,
+        userId,
         date: date && date.trim() !== "" ? new Date(date) : undefined,
-        userId: req.user.id,
       },
     });
-    res.status(201).json({ expense, message: "Expense added successfully" });
+
+    const totalExpense = await prisma.expense.aggregate({
+      where: { userId },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    res.status(201).json({
+      expense,
+      totalExpense: totalExpense._sum.amount || 0,
+      message: "Expense added successfully",
+      success: true,
+    });
   } catch (error) {
-    console.log("add expense Error : ", error);
+    console.log("add expense error:", error);
     next(error);
   }
 };
 
-// ? get expense
-export const getMyExpense = async (
+// ? Get All Expenses
+export const getAllExpense = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
-) => {
+): Promise<void> => {
   try {
-    if (!req.user) {
-      return next(new CustomErrorHandler(401, "Unauthorized"));
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return next(new CustomErrorHandler(401, "User not authenticated"));
     }
+
     const expense = await prisma.expense.findMany({
-      where: {
-        userId: req.user.id,
+      where: { userId },
+      orderBy: {
+        date: "desc",
       },
     });
-    res.status(200).json(expense);
+
+    const totalExpense = await prisma.expense.aggregate({
+      where: { userId },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    res.status(200).json({
+      expense,
+      totalExpense: totalExpense._sum.amount || 0,
+    });
   } catch (error) {
-    console.log("add expense Error : ", error);
+    console.log("get all expense error:", error);
     next(error);
   }
 };
 
-// ? update expense
+// ? Update Expense
 export const updateExpense = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
-) => {
+): Promise<void> => {
   try {
+    const { amount, description, category, date } = req.body;
     const { id } = req.params;
-    const { category, amount, description } = req.body;
+    const userId = req.user?.id;
 
-    console.log("id", id);
-    console.log(category, amount, description);
-
-    if (!category || !amount) {
-      return next(new CustomErrorHandler(400, "All fields are required"));
+    if (!amount || !category) {
+      return next(
+        new CustomErrorHandler(400, "Amount and category are required"),
+      );
     }
 
-    const expense = await prisma.expense.update({
+    if (!id) {
+      return next(new CustomErrorHandler(404, "Expense not found"));
+    }
+
+    const updatedExpense = await prisma.expense.update({
       where: {
         id: Number(id),
-        userId: req.user.id,
       },
       data: {
-        category,
         amount,
         description,
+        category,
+        date: date && date.trim() !== "" ? new Date(date) : undefined,
       },
     });
 
-    console.log("Data", expense);
+    const totalExpense = await prisma.expense.aggregate({
+      where: { userId },
+      _sum: {
+        amount: true,
+      },
+    });
 
-    res.status(200).json({ message: "Expense updated successfully" });
+    res.status(200).json({
+      updatedExpense,
+      totalExpense: totalExpense._sum.amount || 0,
+      message: "Expense updated successfully",
+      success: true,
+    });
   } catch (error) {
-    console.log("update expense Error : ", error);
+    console.log("update expense error:", error);
+    next(error);
+  }
+};
+
+// ? Delete Expense
+export const deleteExpense = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+
+    if (!id) {
+      return next(new CustomErrorHandler(404, "Expense not found"));
+    }
+
+    const deletedExpense = await prisma.expense.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+
+    const totalExpense = await prisma.expense.aggregate({
+      where: { userId },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    res.status(200).json({
+      deletedExpense,
+      totalExpense: totalExpense._sum.amount || 0,
+      message: "Expense deleted successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.log("delete expense error:", error);
     next(error);
   }
 };

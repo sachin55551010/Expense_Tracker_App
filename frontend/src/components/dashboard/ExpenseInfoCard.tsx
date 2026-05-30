@@ -1,13 +1,40 @@
+import { useEffect } from "react";
 import { FaIndianRupeeSign } from "react-icons/fa6";
 import { FaAnglesUp } from "react-icons/fa6";
 import { FaAnglesDown } from "react-icons/fa6";
 import { BsFillPiggyBankFill } from "react-icons/bs";
+import { useDashboardStore } from "../../store/useDashboardStore";
+
+const CardSkeleton = () => {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm animate-pulse">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="h-4 w-24 rounded bg-slate-200"></div>
+
+          <div className="mt-4 h-8 w-32 rounded bg-slate-200"></div>
+
+          <div className="mt-3 h-3 w-20 rounded bg-slate-200"></div>
+        </div>
+
+        <div className="h-14 w-14 rounded-2xl bg-slate-200"></div>
+      </div>
+    </div>
+  );
+};
 
 export const ExpenseInfoCard = () => {
+  const { getDashboardSummary, isDashboardLoading, dashboardData } =
+    useDashboardStore();
+
+  useEffect(() => {
+    getDashboardSummary();
+  }, [getDashboardSummary]);
+
   const cardDetails = [
     {
       title: "Total Balance",
-      amount: "1000",
+      amount: dashboardData?.totalMonthSaving ?? 0,
       icon: <FaIndianRupeeSign />,
       description: "Available balance",
       iconBg: "bg-blue-100",
@@ -15,7 +42,7 @@ export const ExpenseInfoCard = () => {
     },
     {
       title: "Monthly Income",
-      amount: "50000",
+      amount: dashboardData?.totalMonthIncome ?? 0,
       icon: <FaAnglesUp />,
       description: "Income this month",
       iconBg: "bg-green-100",
@@ -23,7 +50,7 @@ export const ExpenseInfoCard = () => {
     },
     {
       title: "Monthly Expense",
-      amount: "1000",
+      amount: dashboardData?.totalMonthExpense ?? 0,
       icon: <FaAnglesDown />,
       description: "Spent this month",
       iconBg: "bg-red-100",
@@ -31,59 +58,82 @@ export const ExpenseInfoCard = () => {
     },
     {
       title: "Total Savings",
-      amount: "1000",
+      amount: dashboardData?.totalMonthSaving ?? 0,
       icon: <BsFillPiggyBankFill />,
       description: "Your total savings",
       iconBg: "bg-yellow-100",
       iconColor: "text-yellow-600",
+      savingPercent: dashboardData?.totalMonthSavingPercent,
     },
   ];
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h4 className="text-3xl font-bold text-slate-800">
+    <section className="p-6">
+      {/* Header */}
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-slate-800">
           Dashboard Overview
-        </h4>
-        <p className="text-slate-500 mt-1">
-          Track your income, expenses and savings
+        </h2>
+
+        <p className="mt-2 text-slate-500">
+          Track your income, expenses and savings for this month.
         </p>
       </div>
 
-      <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        {cardDetails.map((card, index) => (
-          <li
-            key={index}
-            className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
-          >
-            {/* subtle background glow */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-white opacity-0 group-hover:opacity-100 transition duration-300" />
-
-            <div className="relative flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500">
-                  {card.title}
-                </p>
-
-                <h2 className="mt-3 text-3xl font-bold text-slate-800">
-                  ₹{card.amount}
-                </h2>
-
-                <p className="mt-2 text-sm text-slate-400">
-                  {card.description}
-                </p>
-              </div>
-
-              {/* icon */}
+      {/* Cards */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        {isDashboardLoading
+          ? Array.from({ length: 4 }).map((_, index) => (
+              <CardSkeleton key={index} />
+            ))
+          : cardDetails.map((card, index) => (
               <div
-                className={`h-14 w-14 rounded-2xl flex items-center justify-center text-2xl shadow-md ${card.iconBg} ${card.iconColor}`}
+                key={index}
+                className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
-                {card.icon}
+                {/* Hover background */}
+                <div className="absolute inset-0 bg-linear-to-br from-slate-50 to-white opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+                <div className="relative flex items-start justify-between">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-slate-500">
+                      {card.title}
+                    </p>
+
+                    <h3 className="text-3xl font-bold text-slate-800">
+                      ₹
+                      {Number(card.amount).toLocaleString("en-IN", {
+                        maximumFractionDigits: 2,
+                      })}
+                    </h3>
+
+                    <p className="text-sm text-slate-400">{card.description}</p>
+                  </div>
+
+                  <div
+                    className={`flex h-14 w-14 items-center justify-center rounded-2xl text-2xl shadow-sm ${card.iconBg} ${card.iconColor}`}
+                  >
+                    {card.icon}
+                  </div>
+                </div>
+
+                {/* Savings Percentage */}
+                {card.savingPercent !== undefined && (
+                  <div className="relative mt-5 border-t border-slate-100 pt-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-500">
+                        Savings Rate
+                      </span>
+
+                      <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
+                        {Number(card.savingPercent).toFixed(2)}%
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
+            ))}
+      </div>
+    </section>
   );
 };

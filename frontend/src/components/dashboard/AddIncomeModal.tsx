@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { FaIndianRupeeSign } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
-import { useIncomeAuthStore } from "../../store/useIncomeAuthStore";
+import { useIncomeStore } from "../../store/useIncomeStore";
 import type { IncomeData } from "../../types/income";
 interface AddIncomeData {
   source: string;
@@ -39,7 +39,7 @@ export const AddIncomeModal = ({
     isIncomeUpdating,
     deleteIncome,
     isIncomeDeleting,
-  } = useIncomeAuthStore();
+  } = useIncomeStore();
 
   const [incomeData, setIncomeData] = useState<AddIncomeData>({
     source: "",

@@ -6,7 +6,8 @@ import { axiosInstance } from "../api/axiosInstance";
 import toast from "react-hot-toast";
 import axios from "axios";
 
-import { useIncomeAuthStore } from "./useIncomeAuthStore";
+import { useIncomeStore } from "./useIncomeStore";
+import { useExpenseStore } from "./useExpenseStore";
 
 interface CustomError {
   response?: {
@@ -91,7 +92,8 @@ export const useAuthStore = create<AuthData>((set) => ({
     try {
       const res = await axiosInstance.post("/user/logout");
       set({ authUser: null });
-      useIncomeAuthStore.getState().resetIncomeState();
+      useIncomeStore.getState().resetIncomeState();
+      useExpenseStore.getState().resetExpenseState();
       toast.success(res.data.message || "Logout successful");
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {

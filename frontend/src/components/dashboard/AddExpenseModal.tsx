@@ -1,13 +1,31 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 import { FaIndianRupeeSign } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 
+import type { ExpenseData } from "../../types/expense";
+import { useExpenseStore } from "../../store/useExpenseStore";
+
+interface AddExpenseData {
+  category: string;
+  amount: string;
+  description?: string;
+  date: string;
+}
+
 interface AddExpenseModalProps {
   isOpen: boolean;
+  mode: "add" | "edit";
+  selectedExpense?: ExpenseData | null;
   onClose: () => void;
 }
 
-export const AddExpenseModal = ({ isOpen, onClose }: AddExpenseModalProps) => {
+export const AddExpenseModal = ({
+  isOpen,
+  onClose,
+  mode,
+  selectedExpense,
+}: AddExpenseModalProps) => {
   const expenseCategories = [
     "Food",
     "Travel",
@@ -20,6 +38,74 @@ export const AddExpenseModal = ({ isOpen, onClose }: AddExpenseModalProps) => {
     "Subscriptions",
     "Others",
   ];
+
+  const {
+    addExpense,
+    isExpenseAdding,
+    updateExpense,
+    isExpenseUpdating,
+    deleteExpense,
+    isExpenseDeleting,
+  } = useExpenseStore();
+
+  const [expenseData, setExpenseData] = useState<AddExpenseData>({
+    category: "",
+    amount: "",
+    description: "",
+    date: "",
+  });
+
+  // ? Fill fields when edit mode opens
+  useEffect(() => {
+    if (mode === "edit" && selectedExpense) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setExpenseData({
+        category: selectedExpense.category,
+        amount: selectedExpense.amount.toString(),
+        description: selectedExpense.description || "",
+        date: selectedExpense.date || "",
+      });
+    }
+
+    // ? Reset form in add mode
+    if (mode === "add") {
+      setExpenseData({
+        category: "",
+        amount: "",
+        description: "",
+        date: "",
+      });
+    }
+  }, [mode, selectedExpense]);
+
+  // ? Handle form submission
+  const handleExpenseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const payload = {
+      ...expenseData,
+      amount: parseFloat(expenseData.amount),
+    };
+
+    if (mode === "edit") {
+      if (selectedExpense && selectedExpense.id != null) {
+        await updateExpense(selectedExpense.id, payload);
+      }
+    } else {
+      await addExpense(payload);
+    }
+
+    onClose();
+  };
+
+  // ? Delete handler
+  const handleDelete = async () => {
+    if (!selectedExpense || selectedExpense.id == null) return;
+
+    await deleteExpense(selectedExpense.id);
+
+    onClose();
+  };
 
   return (
     <AnimatePresence>
@@ -41,8 +127,9 @@ export const AddExpenseModal = ({ isOpen, onClose }: AddExpenseModalProps) => {
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-slate-800">
-                  Add Expense
+                  {mode === "edit" ? "Edit Expense" : "Add Expense"}
                 </h2>
+
                 <p className="text-sm text-slate-500">
                   Keep track of your spending
                 </p>
@@ -57,14 +144,23 @@ export const AddExpenseModal = ({ isOpen, onClose }: AddExpenseModalProps) => {
             </div>
 
             {/* Form */}
-            <form className="space-y-5">
+            <form onSubmit={handleExpenseSubmit} className="space-y-5">
               {/* Category */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">
                   Expense Category
                 </label>
 
-                <select className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-rose-400 focus:bg-white">
+                <select
+                  value={expenseData.category}
+                  onChange={(e) =>
+                    setExpenseData({
+                      ...expenseData,
+                      category: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-rose-400 focus:bg-white"
+                >
                   <option value="">Select category</option>
 
                   {expenseCategories.map((category) => (
@@ -83,7 +179,14 @@ export const AddExpenseModal = ({ isOpen, onClose }: AddExpenseModalProps) => {
                   <FaIndianRupeeSign className="text-slate-500" />
 
                   <input
-                    type="number"
+                    value={expenseData.amount}
+                    onChange={(e) =>
+                      setExpenseData({
+                        ...expenseData,
+                        amount: e.target.value,
+                      })
+                    }
+                    type="text"
                     placeholder="Enter amount"
                     className="w-full bg-transparent px-3 py-3 outline-none"
                   />
@@ -97,6 +200,13 @@ export const AddExpenseModal = ({ isOpen, onClose }: AddExpenseModalProps) => {
                 </label>
 
                 <textarea
+                  value={expenseData.description}
+                  onChange={(e) =>
+                    setExpenseData({
+                      ...expenseData,
+                      description: e.target.value,
+                    })
+                  }
                   rows={3}
                   placeholder="Write something..."
                   className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-rose-400 focus:bg-white"
@@ -110,20 +220,71 @@ export const AddExpenseModal = ({ isOpen, onClose }: AddExpenseModalProps) => {
                 </label>
 
                 <input
+                  value={
+                    expenseData.date
+                      ? new Date(expenseData.date).toISOString().slice(0, 16)
+                      : ""
+                  }
+                  onChange={(e) =>
+                    setExpenseData({
+                      ...expenseData,
+                      date: e.target.value,
+                    })
+                  }
                   type="datetime-local"
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-rose-400 focus:bg-white"
                 />
               </div>
 
-              {/* Submit Button */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                type="submit"
-                className="w-full rounded-2xl bg-linear-to-r from-rose-500 to-red-600 py-3 text-sm font-semibold text-white shadow-lg"
-              >
-                Add Expense
-              </motion.button>
+              {/* Action Buttons */}
+              {mode === "edit" ? (
+                <div className="flex gap-3">
+                  {/* Delete Button */}
+                  <motion.button
+                    onClick={handleDelete}
+                    whileHover={{ scale: isExpenseDeleting ? 1 : 1.02 }}
+                    whileTap={{ scale: isExpenseDeleting ? 1 : 0.97 }}
+                    type="button"
+                    disabled={isExpenseUpdating || isExpenseDeleting}
+                    className={`w-full rounded-2xl py-3 text-sm font-semibold text-white shadow-lg transition-all duration-200 ${
+                      isExpenseDeleting || isExpenseUpdating
+                        ? "cursor-not-allowed bg-gray-400"
+                        : "bg-linear-to-r from-red-500 to-red-600"
+                    }`}
+                  >
+                    {isExpenseDeleting ? "Deleting..." : "Delete"}
+                  </motion.button>
+
+                  {/* Update Button */}
+                  <motion.button
+                    whileHover={{ scale: isExpenseUpdating ? 1 : 1.02 }}
+                    whileTap={{ scale: isExpenseUpdating ? 1 : 0.97 }}
+                    type="submit"
+                    disabled={isExpenseUpdating || isExpenseDeleting}
+                    className={`w-full rounded-2xl py-3 text-sm font-semibold text-white shadow-lg transition-all duration-200 ${
+                      isExpenseUpdating || isExpenseDeleting
+                        ? "cursor-not-allowed bg-gray-400"
+                        : "bg-linear-to-r from-rose-500 to-red-600"
+                    }`}
+                  >
+                    {isExpenseUpdating ? "Updating..." : "Update Expense"}
+                  </motion.button>
+                </div>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: isExpenseAdding ? 1 : 1.02 }}
+                  whileTap={{ scale: isExpenseAdding ? 1 : 0.97 }}
+                  type="submit"
+                  disabled={isExpenseAdding}
+                  className={`w-full rounded-2xl py-3 text-sm font-semibold text-white shadow-lg transition-all duration-200 ${
+                    isExpenseAdding
+                      ? "cursor-not-allowed bg-gray-400"
+                      : "bg-linear-to-r from-rose-500 to-red-600"
+                  }`}
+                >
+                  {isExpenseAdding ? "Adding..." : "Add Expense"}
+                </motion.button>
+              )}
             </form>
           </motion.div>
         </motion.div>

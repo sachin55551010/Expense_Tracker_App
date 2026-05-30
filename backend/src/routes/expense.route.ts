@@ -1,21 +1,22 @@
 import express from "express";
+import { checkAuth } from "../middlewares/checkAuth.js";
 import {
-  addNewExpense,
-  getMyExpense,
+  addExpense,
+  deleteExpense,
+  getAllExpense,
   updateExpense,
 } from "../controllers/expense.controller.js";
-import { checkAuth } from "../middlewares/checkAuth.js";
 
 export const expenseRouter = express.Router();
 
-// ? create expense
-expenseRouter.post("/add-expense", checkAuth, addNewExpense);
+// ? add expense route
+expenseRouter.post("/add", checkAuth, addExpense);
 
-//? get expense of perticular user
-expenseRouter.get("/my-expense", checkAuth, getMyExpense);
+// ? get all expense route
+expenseRouter.get("/all", checkAuth, getAllExpense);
 
 // ? update expense route
-expenseRouter.put("/update-expense/:id", checkAuth, updateExpense);
+expenseRouter.put("/update/:id", checkAuth, updateExpense);
 
 // ? delete expense route
-// expenseRouter.delete("/delete-expense/:id", checkAuth, deleteExpense);
+expenseRouter.delete("/delete/:id", checkAuth, deleteExpense);
