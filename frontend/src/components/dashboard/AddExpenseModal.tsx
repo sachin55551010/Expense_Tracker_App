@@ -114,7 +114,7 @@ export const AddExpenseModal = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+          className="fixed inset-0 z-95 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
         >
           <motion.div
             initial={{ opacity: 0, y: 40, scale: 0.95 }}

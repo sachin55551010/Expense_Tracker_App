@@ -2,6 +2,8 @@ import { create } from "zustand";
 import type { IncomeData } from "../types/income";
 import { axiosInstance } from "../api/axiosInstance";
 import toast from "react-hot-toast";
+import { useDashboardStore } from "./useDashboardStore";
+import type { YearlyIncomeData } from "../types/yearIyIncome";
 
 interface CustomError {
   response?: {
@@ -19,6 +21,8 @@ interface IncomeResource {
 interface AuthStore {
   isIncomeAdding: boolean;
   allIncomes: IncomeResource | null;
+  monthlyIncome: IncomeData[] | null;
+  monthlyIncomePerYear: YearlyIncomeData[];
   isIncomeLoading: boolean;
   isIncomeDeleting: boolean;
   isIncomeUpdating: boolean;
@@ -38,7 +42,8 @@ It means:
 
 export const useIncomeStore = create<AuthStore>((set) => ({
   isIncomeAdding: false,
-
+  monthlyIncome: [],
+  monthlyIncomePerYear: [],
   allIncomes: {
     income: [],
     totalIncome: 0,
@@ -52,6 +57,7 @@ export const useIncomeStore = create<AuthStore>((set) => ({
     try {
       set({ isIncomeAdding: true });
       const res = await axiosInstance.post("/income/add", data);
+      useDashboardStore.getState().getDashboardSummary();
       set((state) => ({
         allIncomes: {
           income: [...(state.allIncomes?.income || []), res.data.income],
@@ -75,6 +81,8 @@ export const useIncomeStore = create<AuthStore>((set) => ({
       set({ isIncomeLoading: true });
       const res = await axiosInstance.get("/income/all");
       set({ allIncomes: res.data });
+      set({ monthlyIncome: res?.data?.monthlyIncome });
+      set({ monthlyIncomePerYear: res.data.monthlyIncomePerYear });
     } catch (error) {
       const err = error as CustomError;
       console.log(
@@ -91,6 +99,7 @@ export const useIncomeStore = create<AuthStore>((set) => ({
     try {
       set({ isIncomeDeleting: true });
       const res = await axiosInstance.delete(`/income/delete/${id}`);
+      useDashboardStore.getState().getDashboardSummary();
       set((state) => ({
         allIncomes: state.allIncomes
           ? {
@@ -116,6 +125,7 @@ export const useIncomeStore = create<AuthStore>((set) => ({
     try {
       set({ isIncomeUpdating: true });
       const res = await axiosInstance.put(`/income/update/${id}`, data);
+      useDashboardStore.getState().getDashboardSummary();
       console.log(res);
       set((state) => ({
         allIncomes: state.allIncomes

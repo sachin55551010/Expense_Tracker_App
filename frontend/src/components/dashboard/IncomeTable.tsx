@@ -29,7 +29,7 @@ export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
     Others: "💰",
   };
   return (
-    <div className="rounded-2xl border border-zinc-200 p-2 shadow-sm w-full">
+    <div className="rounded-2xl border border-zinc-200 p-2 max-h-120 shadow-sm w-full overflow-y-scroll">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div>

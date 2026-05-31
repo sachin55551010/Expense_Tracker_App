@@ -5,23 +5,15 @@ import { FaAnglesDown } from "react-icons/fa6";
 import { BsFillPiggyBankFill } from "react-icons/bs";
 import { useDashboardStore } from "../../store/useDashboardStore";
 
-const CardSkeleton = () => {
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm animate-pulse">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="h-4 w-24 rounded bg-slate-200"></div>
-
-          <div className="mt-4 h-8 w-32 rounded bg-slate-200"></div>
-
-          <div className="mt-3 h-3 w-20 rounded bg-slate-200"></div>
-        </div>
-
-        <div className="h-14 w-14 rounded-2xl bg-slate-200"></div>
-      </div>
-    </div>
-  );
-};
+const ValueSkeleton = ({
+  width = "w-28",
+  height = "h-8",
+}: {
+  width?: string;
+  height?: string;
+}) => (
+  <div className={`${width} ${height} animate-pulse rounded-lg bg-slate-200`} />
+);
 
 export const ExpenseInfoCard = () => {
   const { getDashboardSummary, isDashboardLoading, dashboardData } =
@@ -82,57 +74,61 @@ export const ExpenseInfoCard = () => {
 
       {/* Cards */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-        {isDashboardLoading
-          ? Array.from({ length: 4 }).map((_, index) => (
-              <CardSkeleton key={index} />
-            ))
-          : cardDetails.map((card, index) => (
-              <div
-                key={index}
-                className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                {/* Hover background */}
-                <div className="absolute inset-0 bg-linear-to-br from-slate-50 to-white opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        {cardDetails.map((card, index) => (
+          <div
+            key={index}
+            className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+          >
+            {/* Hover background */}
+            <div className="absolute inset-0 bg-linear-to-br from-slate-50 to-white opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-                <div className="relative flex items-start justify-between">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-slate-500">
-                      {card.title}
-                    </p>
+            <div className="relative flex items-start justify-between">
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-500">
+                  {card.title}
+                </p>
 
+                <div className="h-10 flex items-center">
+                  {isDashboardLoading ? (
+                    <ValueSkeleton />
+                  ) : (
                     <h3 className="text-3xl font-bold text-slate-800">
                       ₹
                       {Number(card.amount).toLocaleString("en-IN", {
                         maximumFractionDigits: 2,
                       })}
                     </h3>
-
-                    <p className="text-sm text-slate-400">{card.description}</p>
-                  </div>
-
-                  <div
-                    className={`flex h-14 w-14 items-center justify-center rounded-2xl text-2xl shadow-sm ${card.iconBg} ${card.iconColor}`}
-                  >
-                    {card.icon}
-                  </div>
+                  )}
                 </div>
 
-                {/* Savings Percentage */}
-                {card.savingPercent !== undefined && (
-                  <div className="relative mt-5 border-t border-slate-100 pt-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-500">
-                        Savings Rate
-                      </span>
-
-                      <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
-                        {Number(card.savingPercent).toFixed(2)}%
-                      </span>
-                    </div>
-                  </div>
-                )}
+                <p className="text-sm text-slate-400">{card.description}</p>
               </div>
-            ))}
+
+              <div
+                className={`flex h-14 w-14 items-center justify-center rounded-2xl text-2xl shadow-sm ${card.iconBg} ${card.iconColor}`}
+              >
+                {card.icon}
+              </div>
+            </div>
+
+            {/* Savings Percentage */}
+            {card.savingPercent !== undefined && (
+              <div className="relative mt-5 border-t border-slate-100 pt-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-500">Savings Rate</span>
+
+                  {isDashboardLoading ? (
+                    <ValueSkeleton width="w-16" height="h-8" />
+                  ) : (
+                    <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
+                      {Number(card.savingPercent).toFixed(2)}%
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </section>
   );
