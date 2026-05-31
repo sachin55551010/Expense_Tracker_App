@@ -53,31 +53,30 @@ export const AddIncomeAndExpense = ({
       </div>
 
       {/* income expense toogle button  */}
-      <div className="flex gap-3 mt-5">
-        <div className="bg-gray-100 rounded-md p-2 flex justify-around relative">
-          <button
-            onClick={incomeToggleBtn}
-            className="z-90 px-4 cursor-pointer"
-          >
-            Income
-          </button>
-          <button
-            onClick={expenseToggleBtn}
-            className="z-90 px-4 cursor-pointer"
-          >
-            Expense
-          </button>
-          <motion.div
-            className={`absolute ${toggleTable === "income" ? "bg-emerald-200" : "bg-red-200"} h-8 rounded-md top-1 left-1`}
-            initial={{ x: 0, width: 100 }}
-            animate={
-              toggleTable === "expense"
-                ? { x: 82, width: [0, 100] }
-                : { x: 0, width: [0, 100] }
-            }
-            transition={{ duration: 0.5 }}
-          ></motion.div>
-        </div>
+      <div className={`flex mt-5 w-fit p-2 rounded-2xl relative bg-gray-100`}>
+        <button
+          onClick={incomeToggleBtn}
+          className={`py-1 cursor-pointer w-25 z-90 ${toggleTable === "income" ? "text-emerald-600 font-bold" : "text-gray-400 font-semibold"}`}
+        >
+          Income
+        </button>
+        <button
+          onClick={expenseToggleBtn}
+          className={`py-1 cursor-pointer w-25 z-90 ${toggleTable === "expense" ? "text-red-600 font-bold" : "text-gray-400 font-semibold"}`}
+        >
+          Expense
+        </button>
+
+        <motion.div
+          className={`inset-1 w-27 rounded-xl absolute ${toggleTable === "income" ? "bg-emerald-200" : "bg-red-200"}`}
+          animate={toggleTable === "income" ? { x: 0 } : { x: 100 }}
+          transition={{
+            duration: 0.4,
+            type: "spring",
+            damping: 25,
+            stiffness: 500,
+          }}
+        ></motion.div>
       </div>
     </div>
   );

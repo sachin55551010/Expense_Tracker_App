@@ -73,6 +73,7 @@ const MonthlyIncomeBar = () => {
             dataKey="amount"
             fill="#8884d8"
             radius={[8, 8, 0, 0]}
+            stroke="none"
             activeBar={{
               fill: "#6d28d9",
             }}

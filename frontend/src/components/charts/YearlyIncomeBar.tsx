@@ -40,7 +40,7 @@ export const YearlyIncomeBar = () => {
 
           <Tooltip
             formatter={(value) => [`₹${value}`, "Income"]}
-            labelFormatter={(label) => `Day ${label}`}
+            labelFormatter={(label) => `Month ${label}`}
           />
 
           <Bar
