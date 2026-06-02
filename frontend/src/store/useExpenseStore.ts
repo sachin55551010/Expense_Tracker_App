@@ -3,7 +3,8 @@ import type { ExpenseData } from "../types/expense";
 import { axiosInstance } from "../api/axiosInstance";
 import toast from "react-hot-toast";
 import { useDashboardStore } from "./useDashboardStore";
-
+import { useIncomeStore } from "./useIncomeStore";
+const month = useIncomeStore.getState().month;
 interface CustomError {
   response?: {
     data?: {
@@ -57,7 +58,7 @@ export const useExpenseStore = create<ExpenseStore>((set) => ({
 
       const res = await axiosInstance.post("/expense/add", data);
 
-      useDashboardStore.getState().getDashboardSummary();
+      useDashboardStore.getState().getDashboardSummary(month);
       set((state) => ({
         allExpenses: {
           expense: [...(state.allExpenses?.expense || []), res.data.expense],
@@ -102,7 +103,7 @@ export const useExpenseStore = create<ExpenseStore>((set) => ({
       set({ isExpenseDeleting: true });
 
       const res = await axiosInstance.delete(`/expense/delete/${id}`);
-      useDashboardStore.getState().getDashboardSummary();
+      useDashboardStore.getState().getDashboardSummary(month);
       set((state) => ({
         allExpenses: state.allExpenses
           ? {
@@ -134,7 +135,7 @@ export const useExpenseStore = create<ExpenseStore>((set) => ({
       set({ isExpenseUpdating: true });
 
       const res = await axiosInstance.put(`/expense/update/${id}`, data);
-      useDashboardStore.getState().getDashboardSummary();
+      useDashboardStore.getState().getDashboardSummary(month);
       set((state) => ({
         allExpenses: state.allExpenses
           ? {

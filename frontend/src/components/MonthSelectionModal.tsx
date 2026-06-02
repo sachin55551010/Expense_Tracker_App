@@ -25,7 +25,7 @@ export const MonthSelectionModal = ({ getMonth, onClose }: getMonthProp) => {
     onClose();
   };
   return (
-    <div className="absolute top-0 left-[-40%] z-50 w-56 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl">
+    <div className="absolute top-0 left-[-60%] z-50 w-56 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
         <h6 className="text-sm font-semibold text-zinc-800">Select Month</h6>
