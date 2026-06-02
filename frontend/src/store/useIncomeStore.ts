@@ -46,7 +46,7 @@ It means:
   getYearlyIncome: () => void;
 }
 
-export const useIncomeStore = create<AuthStore>((set) => ({
+export const useIncomeStore = create<AuthStore>((set, get) => ({
   month:
     Number(localStorage.getItem("current_month_num")) || new Date().getMonth(),
   isIncomeAdding: false,
@@ -72,7 +72,7 @@ export const useIncomeStore = create<AuthStore>((set) => ({
     try {
       set({ isIncomeAdding: true });
       const res = await axiosInstance.post("/income/add", data);
-      const month = useIncomeStore.getState().month;
+
       useDashboardStore.getState().getDashboardSummary(month);
       set((state) => ({
         allIncomes: {
@@ -150,7 +150,8 @@ export const useIncomeStore = create<AuthStore>((set) => ({
     try {
       set({ isIncomeDeleting: true });
       const res = await axiosInstance.delete(`/income/delete/${id}`);
-      useDashboardStore.getState().getDashboardSummary();
+      const month = get().month;
+      useDashboardStore.getState().getDashboardSummary(month);
       set((state) => ({
         allIncomes: state.allIncomes
           ? {
@@ -176,7 +177,8 @@ export const useIncomeStore = create<AuthStore>((set) => ({
     try {
       set({ isIncomeUpdating: true });
       const res = await axiosInstance.put(`/income/update/${id}`, data);
-      useDashboardStore.getState().getDashboardSummary();
+      const month = get().month;
+      useDashboardStore.getState().getDashboardSummary(month);
       console.log(res);
       set((state) => ({
         allIncomes: state.allIncomes
