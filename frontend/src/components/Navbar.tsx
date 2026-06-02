@@ -9,7 +9,7 @@ export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-slate-900/80 backdrop-blur-xl">
+    <nav className="sticky top-0 z-100 w-full border-b border-white/10 bg-slate-900/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-2">
         {/* Logo Section */}
         <div className="flex items-center gap-3">

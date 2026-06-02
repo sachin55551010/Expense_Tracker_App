@@ -8,9 +8,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useIncomeStore } from "../../store/useIncomeStore";
+import { useEffect } from "react";
 export const YearlyIncomeBar = () => {
-  const { monthlyIncomePerYear } = useIncomeStore();
-  console.log(monthlyIncomePerYear);
+  const { monthlyIncomePerYear, getYearlyIncome } = useIncomeStore();
+
+  useEffect(() => {
+    getYearlyIncome();
+  }, [getYearlyIncome]);
 
   return (
     <div className="w-full h-100">
@@ -18,16 +22,16 @@ export const YearlyIncomeBar = () => {
         <BarChart
           data={monthlyIncomePerYear}
           margin={{
-            top: 20,
-            right: 20,
-            left: 10,
+            top: 10,
+            right: 10,
+            left: -20,
             bottom: 10,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
 
           <XAxis
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 10 }}
             dataKey="month"
             label={{
               value: "Months",
@@ -36,7 +40,7 @@ export const YearlyIncomeBar = () => {
             }}
           />
 
-          <YAxis tick={{ fontSize: 14 }} />
+          <YAxis tick={{ fontSize: 10 }} />
 
           <Tooltip
             formatter={(value) => [`₹${value}`, "Income"]}
@@ -45,10 +49,10 @@ export const YearlyIncomeBar = () => {
 
           <Bar
             dataKey="income"
-            fill="#8884d8"
-            radius={[8, 8, 0, 0]}
+            fill="#A7F3D0"
+            radius={[10, 10, 0, 0]}
             activeBar={{
-              fill: "#6d28d9",
+              fill: "#A7F3D0",
             }}
           />
         </BarChart>

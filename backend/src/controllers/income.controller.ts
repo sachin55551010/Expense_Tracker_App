@@ -60,16 +60,6 @@ export const getAllIncome = async (
   try {
     const userId = req.user?.id;
 
-    const startOfMonth = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-    );
-
-    const endOfMonth = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth() + 1,
-    );
-
     if (!userId) {
       return next(new CustomErrorHandler(400, "User not authenticated"));
     }
@@ -86,17 +76,6 @@ export const getAllIncome = async (
       },
       _sum: {
         amount: true,
-      },
-    });
-
-    //? monthly income
-    const monthlyIncome = await prisma.income.findMany({
-      where: {
-        userId,
-        date: {
-          gt: startOfMonth,
-          lte: endOfMonth,
-        },
       },
     });
 
@@ -124,7 +103,6 @@ ORDER BY m.month_num;
     res.status(200).json({
       income,
       totalIncome: totalIncome._sum.amount || 0,
-      monthlyIncome,
       monthlyIncomePerYear,
     });
   } catch (error) {
@@ -134,7 +112,6 @@ ORDER BY m.month_num;
 };
 
 //? update income data
-
 export const updateIncome = async (
   req: AuthRequest,
   res: Response,
@@ -215,6 +192,89 @@ export const deleteIncome = async (
     });
   } catch (error) {
     console.log("delete income error : ", error);
+    next(error);
+  }
+};
+
+// get monthly income for bar chart
+export const getMonthlyIncome = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const month = Number(req.query.month);
+
+    const newMonth = month + 1;
+
+    const currentYear = new Date().getFullYear();
+
+    const startOfMonth = new Date(currentYear, newMonth - 1, 1);
+
+    const endOfMonth = new Date(currentYear, newMonth, 1);
+
+    const monthlyIncome = await prisma.income.findMany({
+      where: {
+        userId: req.user?.id,
+
+        date: {
+          gt: startOfMonth,
+          lte: endOfMonth,
+        },
+      },
+    });
+    const monthlyIncomeTotal = await prisma.income.aggregate({
+      where: {
+        userId: req.user?.id,
+        date: {
+          gt: startOfMonth,
+          lte: endOfMonth,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    const monthlyTotal = monthlyIncomeTotal._sum.amount || 0;
+
+    res.status(200).json({ monthlyIncome, monthlyTotal });
+  } catch (error) {
+    console.log("get monthly income error : ", error);
+    next(error);
+  }
+};
+
+export const yearlyIncome = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const yearlyIncome = await prisma.$queryRaw<
+      {
+        month: string;
+        income: number;
+      }[]
+    >`
+WITH months AS (
+  SELECT generate_series(1, 12) AS month_num
+)
+SELECT
+  TO_CHAR(TO_DATE(month_num::text, 'MM'), 'Mon') AS month,
+  COALESCE(SUM(i.amount), 0) AS income
+FROM months m
+LEFT JOIN "Income" i
+  ON EXTRACT(MONTH FROM i.date) = m.month_num
+  AND EXTRACT(YEAR FROM i.date) = EXTRACT(YEAR FROM CURRENT_DATE)
+  AND i."userId" = ${req.user?.id}
+GROUP BY m.month_num
+ORDER BY m.month_num;
+`;
+
+    res.status(200).json(yearlyIncome);
+  } catch (error) {
+    console.log("get yearly income error : ", error);
     next(error);
   }
 };

@@ -20,12 +20,15 @@ interface IncomeResource {
 
 interface AuthStore {
   isIncomeAdding: boolean;
+  month: number;
   allIncomes: IncomeResource | null;
   monthlyIncome: IncomeData[] | null;
   monthlyIncomePerYear: YearlyIncomeData[];
+  monthlyIncomeTotal: number;
   isIncomeLoading: boolean;
   isIncomeDeleting: boolean;
   isIncomeUpdating: boolean;
+  setMonth: (month: number) => void;
   addIncome: (
     data: Omit<IncomeData, "id">,
   ) => Promise<void>; /*Omit is a built-in TypeScript utility type.
@@ -38,12 +41,19 @@ It means:
   ) => Promise<void>;
   deleteIncome: (id: number) => Promise<void>;
   resetIncomeState: () => void;
+
+  getMonthlyIncome: (month: number) => void;
+  getYearlyIncome: () => void;
 }
 
 export const useIncomeStore = create<AuthStore>((set) => ({
+  month:
+    Number(localStorage.getItem("current_month_num")) || new Date().getMonth(),
   isIncomeAdding: false,
   monthlyIncome: [],
+  monthlyIncomeTotal: 0,
   monthlyIncomePerYear: [],
+
   allIncomes: {
     income: [],
     totalIncome: 0,
@@ -52,17 +62,28 @@ export const useIncomeStore = create<AuthStore>((set) => ({
   isIncomeDeleting: false,
   isIncomeUpdating: false,
 
+  setMonth: (month) => {
+    localStorage.setItem("current_month_num", String(month));
+    set({ month });
+  },
+
   // ? function to add new income
   addIncome: async (data) => {
     try {
       set({ isIncomeAdding: true });
       const res = await axiosInstance.post("/income/add", data);
+
       useDashboardStore.getState().getDashboardSummary();
       set((state) => ({
         allIncomes: {
           income: [...(state.allIncomes?.income || []), res.data.income],
           totalIncome: res.data.totalIncome,
         },
+      }));
+
+      set((state) => ({
+        monthlyIncome: [...(state.monthlyIncome || []), res.data.income],
+        monthlyIncomeTotal: state.monthlyIncomeTotal + res.data.income.amount,
       }));
     } catch (error) {
       const err = error as CustomError;
@@ -81,8 +102,6 @@ export const useIncomeStore = create<AuthStore>((set) => ({
       set({ isIncomeLoading: true });
       const res = await axiosInstance.get("/income/all");
       set({ allIncomes: res.data });
-      set({ monthlyIncome: res?.data?.monthlyIncome });
-      set({ monthlyIncomePerYear: res.data.monthlyIncomePerYear });
     } catch (error) {
       const err = error as CustomError;
       console.log(
@@ -91,6 +110,38 @@ export const useIncomeStore = create<AuthStore>((set) => ({
       );
     } finally {
       set({ isIncomeLoading: false });
+    }
+  },
+
+  // ? get monthly income
+  getMonthlyIncome: async (month: number) => {
+    try {
+      const res = await axiosInstance.get("/income/monthly-income-chart", {
+        params: { month },
+      });
+
+      set({ monthlyIncome: res.data.monthlyIncome });
+      set({ monthlyIncomeTotal: res.data.monthlyTotal });
+    } catch (error) {
+      const err = error as CustomError;
+      console.log(
+        "add income error : ",
+        err?.response?.data?.message || "Add Income failed",
+      );
+    }
+  },
+
+  getYearlyIncome: async () => {
+    try {
+      const res = await axiosInstance("/income/yearly-income-chart");
+
+      set({ monthlyIncomePerYear: res.data });
+    } catch (error) {
+      const err = error as CustomError;
+      console.log(
+        "add income error : ",
+        err?.response?.data?.message || "Add Income failed",
+      );
     }
   },
 

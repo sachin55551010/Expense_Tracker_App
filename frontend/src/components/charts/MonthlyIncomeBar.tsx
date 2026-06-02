@@ -11,29 +11,31 @@ import {
 import { useIncomeStore } from "../../store/useIncomeStore";
 
 const MonthlyIncomeBar = () => {
-  const { monthlyIncome } = useIncomeStore();
+  const { monthlyIncome, month } = useIncomeStore();
 
   const currentDate = new Date();
   const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
 
-  // Get total days in current month
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  // fallback to current month if localStorage is empty
+  const selectedMonth = isNaN(month) ? currentDate.getMonth() : month;
 
-  // Create data for all days with amount = 0
+  // Get total days in selected month
+  const daysInMonth = new Date(year, selectedMonth + 1, 0).getDate();
+
   const chartData = Array.from({ length: daysInMonth }, (_, index) => ({
     day: index + 1,
     amount: 0,
   }));
 
-  // Merge incomes from the same day
   monthlyIncome?.forEach((income) => {
     const incomeDate = new Date(income.date);
 
-    // Ignore data from other months
-    if (incomeDate.getMonth() === month && incomeDate.getFullYear() === year) {
+    // Filter by selected month
+    if (
+      incomeDate.getMonth() === selectedMonth &&
+      incomeDate.getFullYear() === year
+    ) {
       const dayIndex = incomeDate.getDate() - 1;
-
       chartData[dayIndex].amount += Number(income.amount);
     }
   });
@@ -44,13 +46,13 @@ const MonthlyIncomeBar = () => {
         <BarChart
           data={chartData}
           margin={{
-            top: 20,
-            right: 20,
-            left: 10,
+            top: 10,
+            right: 10,
+            left: -20,
             bottom: 10,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="1 1" strokeOpacity={0.2} />
 
           <XAxis
             tick={{ fontSize: 12 }}
@@ -58,11 +60,11 @@ const MonthlyIncomeBar = () => {
             label={{
               value: "Day",
               position: "insideBottom",
-              offset: -5,
+              offset: -4,
             }}
           />
 
-          <YAxis tick={{ fontSize: 14 }} />
+          <YAxis tick={{ fontSize: 11 }} />
 
           <Tooltip
             formatter={(value) => [`₹${value}`, "Income"]}
@@ -71,11 +73,11 @@ const MonthlyIncomeBar = () => {
 
           <Bar
             dataKey="amount"
-            fill="#8884d8"
+            fill="#A7F3D0"
             radius={[8, 8, 0, 0]}
             stroke="none"
             activeBar={{
-              fill: "#6d28d9",
+              fill: "#A7F3D0",
             }}
           />
         </BarChart>

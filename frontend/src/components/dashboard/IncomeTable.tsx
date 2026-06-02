@@ -2,24 +2,35 @@ import { motion } from "framer-motion";
 import { FaIndianRupeeSign } from "react-icons/fa6";
 import { FiCalendar } from "react-icons/fi";
 import { useIncomeStore } from "../../store/useIncomeStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import type { IncomeData } from "../../types/income";
+import { MonthSelectionModal } from "../MonthSelectionModal";
+import { ChevronDown } from "lucide-react";
 
 interface IncomeTableProps {
   onEditIncome: (income: IncomeData) => void;
 }
 
 export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
-  const { getAllIncomes, allIncomes, isIncomeLoading } = useIncomeStore();
+  const {
+    getMonthlyIncome,
+    isIncomeLoading,
+    monthlyIncome,
+    month,
+    setMonth,
+    monthlyIncomeTotal,
+  } = useIncomeStore();
 
-  useEffect(() => {
-    getAllIncomes();
-  }, [getAllIncomes]);
+  const currentMonthName = new Date().toLocaleString("en-US", {
+    month: "short",
+  });
 
-  const incomeList = allIncomes?.income;
-
-  const totalAmount = allIncomes?.totalIncome;
+  const [openMonthModal, setOpenMonthModal] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const savedMonth = localStorage.getItem("current_month");
+    return savedMonth ? savedMonth : currentMonthName;
+  });
 
   const incomeCategories: Record<string, string> = {
     Salary: "💼",
@@ -28,8 +39,21 @@ export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
     Business: "🏢",
     Others: "💰",
   };
+
+  const getMonth = (m: number, selectedMonth: string) => {
+    setMonth(m);
+    setSelectedMonth(selectedMonth);
+  };
+  useEffect(() => {
+    getMonthlyIncome(month);
+  }, [getMonthlyIncome, month]);
+  useEffect(() => {
+    localStorage.setItem("current_month", selectedMonth);
+    localStorage.setItem("current_month_num", month.toString());
+  }, [selectedMonth, month]);
+
   return (
-    <div className="rounded-2xl border border-zinc-200 p-2 max-h-120 shadow-sm w-full overflow-y-scroll">
+    <div className="max-h-120 rounded-2xl border border-zinc-200 p-2 shadow-sm w-full">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div>
@@ -38,17 +62,39 @@ export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
           <p className="text-xs text-zinc-500">All income transactions</p>
         </div>
 
-        {/* Total Amount */}
-        <div className="rounded-xl bg-emerald-50 px-3 py-2">
-          <p className="text-[10px] text-zinc-500">Total</p>
+        {/* month and total amount section */}
+        <div className="flex items-center gap-2 relative">
+          <div>
+            {/* choose month button  */}
+            <button
+              onClick={() => setOpenMonthModal(true)}
+              className="group flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 shadow-sm transition-all duration-200 hover:border-zinc-300 hover:shadow-md active:scale-[0.98]"
+            >
+              <span>{selectedMonth}</span>
 
-          {isIncomeLoading ? (
-            <div className="mt-1 h-5 w-15 animate-pulse rounded bg-emerald-200"></div>
-          ) : (
-            <div className="flex items-center text-sm font-bold text-emerald-600">
-              <FaIndianRupeeSign className="mr-1 text-[10px]" />
-              {totalAmount}
-            </div>
+              <ChevronDown
+                size={16}
+                className="transition-transform duration-200 group-hover:translate-y-0.5"
+              />
+            </button>
+          </div>
+          {/* Total Amount */}
+          <div className="rounded-xl bg-emerald-50 px-3 py-2">
+            <p className="text-[10px] text-zinc-500">Total</p>
+            {isIncomeLoading ? (
+              <div className="mt-1 h-5 w-15 animate-pulse rounded bg-emerald-200"></div>
+            ) : (
+              <div className="flex items-center text-sm font-bold text-emerald-600">
+                <FaIndianRupeeSign className="mr-1 text-[10px]" />
+                {monthlyIncomeTotal}
+              </div>
+            )}
+          </div>
+          {openMonthModal && (
+            <MonthSelectionModal
+              getMonth={getMonth}
+              onClose={() => setOpenMonthModal(false)}
+            />
           )}
         </div>
       </div>
@@ -77,8 +123,8 @@ export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
         </div>
       ) : (
         /* Table */
-        <div className="overflow-x-auto">
-          <table className="w-full border-separate border-spacing-y-2">
+        <div className="overflow-x-auto overflow-y-scroll max-h-100">
+          <table className=" w-full border-separate border-spacing-y-2">
             <thead>
               <tr>
                 <th className="px-2 text-left text-[11px] font-semibold text-zinc-500">
@@ -100,7 +146,7 @@ export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
             </thead>
 
             <tbody>
-              {incomeList?.map((income, index) => (
+              {monthlyIncome?.map((income, index) => (
                 <motion.tr
                   key={income.id}
                   initial={{ opacity: 0, y: 10 }}

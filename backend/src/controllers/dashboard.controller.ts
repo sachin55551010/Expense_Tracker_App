@@ -8,15 +8,15 @@ export const getDashBoardSummary = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const startOfMonth = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-    );
+    const month = Number(req.query.month);
 
-    const endOfMonth = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth() + 1,
-    );
+    const newMonth = month + 1;
+
+    const currentYear = new Date().getFullYear();
+
+    const startOfMonth = new Date(currentYear, newMonth - 1, 1);
+
+    const endOfMonth = new Date(currentYear, newMonth, 1);
 
     const [
       totalIncomeResult,

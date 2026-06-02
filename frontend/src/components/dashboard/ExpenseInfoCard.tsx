@@ -4,6 +4,7 @@ import { FaAnglesUp } from "react-icons/fa6";
 import { FaAnglesDown } from "react-icons/fa6";
 import { BsFillPiggyBankFill } from "react-icons/bs";
 import { useDashboardStore } from "../../store/useDashboardStore";
+import { useIncomeStore } from "../../store/useIncomeStore";
 
 const ValueSkeleton = ({
   width = "w-28",
@@ -18,10 +19,10 @@ const ValueSkeleton = ({
 export const ExpenseInfoCard = () => {
   const { getDashboardSummary, isDashboardLoading, dashboardData } =
     useDashboardStore();
-
+  const { month } = useIncomeStore();
   useEffect(() => {
-    getDashboardSummary();
-  }, [getDashboardSummary]);
+    getDashboardSummary(month);
+  }, [getDashboardSummary, month]);
 
   const cardDetails = [
     {

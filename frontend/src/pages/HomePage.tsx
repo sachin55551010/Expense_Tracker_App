@@ -132,11 +132,15 @@ export const HomePage = () => {
               </div>
             </div>
 
-            <div className={`${toggleGraph === "month" ? "block" : "hidden"}`}>
+            <div
+              className={`${toggleGraph === "month" ? "block" : "hidden"}w-full h-full`}
+            >
               <MonthlyIncomeBar />
             </div>
 
-            <div className={`${toggleGraph === "year" ? "block" : "hidden"}`}>
+            <div
+              className={`${toggleGraph === "year" ? "block" : "hidden"} w-full h-full`}
+            >
               <YearlyIncomeBar />
             </div>
           </div>

@@ -4,7 +4,9 @@ import {
   addIncome,
   deleteIncome,
   getAllIncome,
+  getMonthlyIncome,
   updateIncome,
+  yearlyIncome,
 } from "../controllers/income.controller.js";
 
 export const incomeRouter = express.Router();
@@ -20,3 +22,7 @@ incomeRouter.put("/update/:id", checkAuth, updateIncome);
 
 //? delete income route
 incomeRouter.delete("/delete/:id", checkAuth, deleteIncome);
+
+incomeRouter.get("/monthly-income-chart", checkAuth, getMonthlyIncome);
+
+incomeRouter.get("/yearly-income-chart", checkAuth, yearlyIncome);

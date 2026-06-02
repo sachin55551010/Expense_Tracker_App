@@ -5,15 +5,17 @@ import type { DashboardData } from "../types/dashboard";
 interface DashBoardAuth {
   isDashboardLoading: boolean;
   dashboardData: DashboardData | null;
-  getDashboardSummary: () => void;
+  getDashboardSummary: (month: number) => void;
 }
 export const useDashboardStore = create<DashBoardAuth>((set) => ({
   dashboardData: null,
   isDashboardLoading: false,
-  getDashboardSummary: async () => {
+  getDashboardSummary: async (month: number) => {
     try {
       set({ isDashboardLoading: true });
-      const res = await axiosInstance.get("/dashboard/summary");
+      const res = await axiosInstance.get("/dashboard/summary", {
+        params: { month },
+      });
 
       set({ dashboardData: res.data });
     } catch (error) {

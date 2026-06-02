@@ -1,5 +1,32 @@
 @import "tailwindcss";
 
-.recharts-wrapper *:focus {
-  outline: none !important;
+body {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Width of scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Scrollbar track */
+::-webkit-scrollbar-track {
+  background: #f4f4f5;
+  border-radius: 999px;
+}
+
+/* Scrollbar thumb */
+::-webkit-scrollbar-thumb {
+  background: #a1a1aa;
+  border-radius: 999px;
+}
+
+/* Thumb on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #71717a;
 }
