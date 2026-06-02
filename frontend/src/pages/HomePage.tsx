@@ -56,6 +56,8 @@ export const HomePage = () => {
     setIsAddExpenseOpen(true);
   };
 
+  console.log(toggleGraph);
+
   return (
     <main>
       <Navbar />
@@ -132,15 +134,11 @@ export const HomePage = () => {
               </div>
             </div>
 
-            <div
-              className={`${toggleGraph === "month" ? "block" : "hidden"}w-full h-full`}
-            >
+            <div className={`${toggleGraph === "month" ? "block" : "hidden"}`}>
               <MonthlyIncomeBar />
             </div>
 
-            <div
-              className={`${toggleGraph === "year" ? "block" : "hidden"} w-full h-full`}
-            >
+            <div className={`${toggleGraph === "year" ? "block" : "hidden"} `}>
               <YearlyIncomeBar />
             </div>
           </div>
