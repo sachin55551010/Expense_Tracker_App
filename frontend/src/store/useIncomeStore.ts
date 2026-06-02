@@ -72,7 +72,7 @@ export const useIncomeStore = create<AuthStore>((set, get) => ({
     try {
       set({ isIncomeAdding: true });
       const res = await axiosInstance.post("/income/add", data);
-
+      const month = get().month;
       useDashboardStore.getState().getDashboardSummary(month);
       set((state) => ({
         allIncomes: {
