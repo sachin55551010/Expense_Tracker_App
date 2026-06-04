@@ -3,8 +3,8 @@ import type { ExpenseData } from "../types/expense";
 import { axiosInstance } from "../api/axiosInstance";
 import toast from "react-hot-toast";
 import { useDashboardStore } from "./useDashboardStore";
-import { useIncomeStore } from "./useIncomeStore";
-const month = useIncomeStore.getState().month;
+import type { YearlyExpenseData } from "../types/yearlyExpense";
+
 interface CustomError {
   response?: {
     data?: {
@@ -19,16 +19,27 @@ interface ExpenseResource {
 }
 
 interface ExpenseStore {
+  month: number;
   isExpenseAdding: boolean;
+  isMonthlyExpenseLoading: boolean;
+  isYearlyExpenseLoading: boolean;
   allExpenses: ExpenseResource | null;
+  monthlyExpense: ExpenseData[] | null;
+  monthlyExpenseTotal: number;
+  monthlyExpensePerYear: YearlyExpenseData[];
   isExpenseLoading: boolean;
   isExpenseDeleting: boolean;
   isExpenseUpdating: boolean;
+
+  setMonth: (month: number) => void;
 
   addExpense: (data: Omit<ExpenseData, "id">) => Promise<void>;
 
   getAllExpenses: () => void;
 
+  getMonthlyExpense: (month: number) => void;
+
+  getYearlyExpense: () => void;
   updateExpense: (
     id: number,
     data: Omit<ExpenseData, "id" | "userId">,
@@ -39,17 +50,29 @@ interface ExpenseStore {
   resetExpenseState: () => void;
 }
 
-export const useExpenseStore = create<ExpenseStore>((set) => ({
-  isExpenseAdding: false,
+export const useExpenseStore = create<ExpenseStore>((set, get) => ({
+  month: Number(
+    localStorage.getItem("current_month_num") ?? new Date().getMonth(),
+  ),
 
+  isExpenseAdding: false,
+  isMonthlyExpenseLoading: false,
+  isYearlyExpenseLoading: false,
   allExpenses: {
     expense: [],
     totalExpense: 0,
   },
-
+  monthlyExpense: [],
+  monthlyExpenseTotal: 0,
+  monthlyExpensePerYear: [],
   isExpenseLoading: false,
   isExpenseDeleting: false,
   isExpenseUpdating: false,
+
+  setMonth: (month) => {
+    localStorage.setItem("current_month_num", String(month));
+    set({ month });
+  },
 
   // ? Add Expense
   addExpense: async (data) => {
@@ -57,13 +80,23 @@ export const useExpenseStore = create<ExpenseStore>((set) => ({
       set({ isExpenseAdding: true });
 
       const res = await axiosInstance.post("/expense/add", data);
+      console.log("add expense data : ", res.data);
+
+      const month = get().month;
 
       useDashboardStore.getState().getDashboardSummary(month);
+
       set((state) => ({
         allExpenses: {
           expense: [...(state.allExpenses?.expense || []), res.data.expense],
           totalExpense: res.data.totalExpense,
         },
+      }));
+
+      set((state) => ({
+        monthlyExpense: [...(state.monthlyExpense || []), res.data.expense],
+        monthlyExpenseTotal:
+          state.monthlyExpenseTotal + res?.data?.expense?.amount,
       }));
     } catch (error) {
       const err = error as CustomError;
@@ -97,13 +130,61 @@ export const useExpenseStore = create<ExpenseStore>((set) => ({
     }
   },
 
+  // ? Get Monthly Expense
+  getMonthlyExpense: async (month: number) => {
+    try {
+      set({ isMonthlyExpenseLoading: true });
+
+      const res = await axiosInstance.get("/expense/monthly-expense-chart", {
+        params: { month },
+      });
+      console.log("zustand expense Month : ", month);
+
+      set({
+        monthlyExpense: res.data.monthlyExpense,
+        monthlyExpenseTotal: res.data.monthlyExpenseTotal,
+      });
+    } catch (error) {
+      const err = error as CustomError;
+
+      console.log(
+        "get monthly expense error : ",
+        err?.response?.data?.message || "Get Monthly Expense failed",
+      );
+    } finally {
+      set({ isMonthlyExpenseLoading: false });
+    }
+  },
+
+  // ? get yearly expense
+  getYearlyExpense: async () => {
+    try {
+      set({ isYearlyExpenseLoading: true });
+      const res = await axiosInstance("/expense/yearly-expense-chart");
+
+      set({ monthlyExpensePerYear: res.data });
+    } catch (error) {
+      const err = error as CustomError;
+      console.log(
+        "get yearly expense error : ",
+        err?.response?.data?.message || "Get Yearly Expense failed",
+      );
+    } finally {
+      set({ isYearlyExpenseLoading: false });
+    }
+  },
+
   // ? Delete Expense
   deleteExpense: async (id: number) => {
     try {
       set({ isExpenseDeleting: true });
 
       const res = await axiosInstance.delete(`/expense/delete/${id}`);
+
+      const month = get().month;
+
       useDashboardStore.getState().getDashboardSummary(month);
+
       set((state) => ({
         allExpenses: state.allExpenses
           ? {
@@ -114,6 +195,15 @@ export const useExpenseStore = create<ExpenseStore>((set) => ({
               totalExpense: res.data.totalExpense,
             }
           : null,
+      }));
+
+      set((state) => ({
+        monthlyExpense: state.monthlyExpense
+          ? state.monthlyExpense.filter((expense) => expense.id !== id)
+          : null,
+
+        monthlyExpenseTotal:
+          state.monthlyExpenseTotal - res.data.deletedExpense.amount,
       }));
     } catch (error) {
       const err = error as CustomError;
@@ -135,7 +225,11 @@ export const useExpenseStore = create<ExpenseStore>((set) => ({
       set({ isExpenseUpdating: true });
 
       const res = await axiosInstance.put(`/expense/update/${id}`, data);
+
+      const month = get().month;
+
       useDashboardStore.getState().getDashboardSummary(month);
+
       set((state) => ({
         allExpenses: state.allExpenses
           ? {
@@ -145,6 +239,14 @@ export const useExpenseStore = create<ExpenseStore>((set) => ({
               ),
               totalExpense: res.data.totalExpense,
             }
+          : null,
+      }));
+
+      set((state) => ({
+        monthlyExpense: state.monthlyExpense
+          ? state.monthlyExpense.map((expense) =>
+              expense.id === id ? res.data.updatedExpense : expense,
+            )
           : null,
       }));
     } catch (error) {
@@ -157,6 +259,8 @@ export const useExpenseStore = create<ExpenseStore>((set) => ({
   resetExpenseState: () => {
     set({
       allExpenses: null,
+      monthlyExpense: null,
+      monthlyExpenseTotal: 0,
     });
   },
 }));

@@ -12,8 +12,27 @@ import { ExpenseTable } from "../components/dashboard/ExpenseTable";
 import MonthlyIncomeBar from "../components/charts/MonthlyIncomeBar";
 import { motion } from "motion/react";
 import { YearlyIncomeBar } from "../components/charts/YearlyIncomeBar";
+import MonthlyExpenseBar from "../components/charts/MonthlyExpenseBar";
+import YearlyExpenseBar from "../components/charts/YearlyExpenseBar";
+import { LucideRefreshCcw } from "lucide-react";
+import { useIncomeStore } from "../store/useIncomeStore";
+import { useExpenseStore } from "../store/useExpenseStore";
 
 export const HomePage = () => {
+  const {
+    isMonthlyIncomeLoading,
+    getMonthlyIncome,
+    month,
+    getYearlyIncome,
+    isYearlyIncomeLoading,
+  } = useIncomeStore();
+
+  const {
+    getMonthlyExpense,
+    isMonthlyExpenseLoading,
+    getYearlyExpense,
+    isYearlyExpenseLoading,
+  } = useExpenseStore();
   const [isAddIncomeOpen, setIsAddIncomeOpen] = useState(false);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
@@ -28,12 +47,40 @@ export const HomePage = () => {
   );
 
   const [toggleGraph, setToggleGraph] = useState<"month" | "year">("month");
+  const [toggleExpenseGraph, setToggleExpenseGraph] = useState<
+    "month" | "year"
+  >("month");
+  const currentMonthName = new Date().toLocaleString("en-US", {
+    month: "short",
+  });
+
+  //? function to handle month selection from income and expense table
+  const [openMonthModal, setOpenMonthModal] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const savedMonth = localStorage.getItem("current_month");
+    return savedMonth ? savedMonth : currentMonthName;
+  });
 
   // OPEN ADD MODAL
   const handleAddIncome = () => {
     setModalMode("add");
     setSelectedIncome(null);
     setIsAddIncomeOpen(true);
+  };
+
+  const refreshIncomeBarBtn = () => {
+    getMonthlyIncome(month);
+    if (toggleGraph === "year") {
+      getYearlyIncome();
+    }
+  };
+
+  const refreshExpenseBarBtn = () => {
+    getMonthlyExpense(month);
+    if (toggleExpenseGraph === "year") {
+      console.log("year expense graph load");
+      getYearlyExpense();
+    }
   };
 
   // OPEN ADD EXPENSE
@@ -55,8 +102,6 @@ export const HomePage = () => {
     setSelectedExpense(expense);
     setIsAddExpenseOpen(true);
   };
-
-  console.log(toggleGraph);
 
   return (
     <main>
@@ -91,10 +136,17 @@ export const HomePage = () => {
         <div
           className={`${toggleTable === "income" ? "block" : "hidden"} flex flex-col w-full gap-4 md:flex-row`}
         >
-          <IncomeTable onEditIncome={handleEditIncome} />
+          <IncomeTable
+            onEditIncome={handleEditIncome}
+            setOpenMonthModal={setOpenMonthModal}
+            openMonthModal={openMonthModal}
+            selectedMonth={selectedMonth}
+            setSelectedMonth={setSelectedMonth}
+          />
           <div className="w-full p-2 rounded-2xl shadow-[0px_0px_3px_rgba(0,0,0,.5)]">
             {/* graph header */}
             <div className="flex justify-between items-center">
+              {/* month year heading */}
               <div className="flex items-center gap-2">
                 <FiBarChart2 size={24} className="text-green-400" />
                 <h4 className="font-bold">
@@ -102,35 +154,59 @@ export const HomePage = () => {
                 </h4>
               </div>
 
-              {/* month year button  */}
-              <div className="flex bg-gray-200 p-1 rounded-lg w-fit">
-                {(["month", "year"] as const).map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => setToggleGraph(item)}
-                    className="relative px-5 py-2 rounded-md capitalize font-medium"
-                  >
-                    {toggleGraph === item && (
-                      <motion.div
-                        layoutId="graph-toggle"
-                        className="absolute inset-0 bg-white rounded-md shadow"
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 25,
-                        }}
-                      />
-                    )}
-
-                    <span
-                      className={`relative z-10 ${
-                        toggleGraph === item ? "text-black" : "text-gray-500"
-                      }`}
+              <div className="flex items-center gap-4">
+                <motion.button
+                  onClick={refreshIncomeBarBtn}
+                  className="cursor-pointer"
+                  animate={
+                    isMonthlyIncomeLoading || isYearlyIncomeLoading
+                      ? { rotate: 360 }
+                      : { rotate: 0 }
+                  }
+                  transition={
+                    isMonthlyIncomeLoading || isYearlyIncomeLoading
+                      ? {
+                          duration: 1,
+                          ease: "linear",
+                          repeat: Infinity,
+                        }
+                      : {
+                          duration: 0,
+                        }
+                  }
+                >
+                  <LucideRefreshCcw size={20} />
+                </motion.button>
+                {/* month year button  */}
+                <div className="flex bg-gray-200 p-1 rounded-lg w-fit">
+                  {(["month", "year"] as const).map((item) => (
+                    <button
+                      key={item}
+                      onClick={() => setToggleGraph(item)}
+                      className="relative px-5 py-2 rounded-md capitalize font-medium"
                     >
-                      {item}
-                    </span>
-                  </button>
-                ))}
+                      {toggleGraph === item && (
+                        <motion.div
+                          layoutId="graph-toggle"
+                          className="absolute inset-0 bg-white rounded-md shadow"
+                          transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 25,
+                          }}
+                        />
+                      )}
+
+                      <span
+                        className={`relative z-10 ${
+                          toggleGraph === item ? "text-black" : "text-gray-500"
+                        }`}
+                      >
+                        {item}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -144,8 +220,101 @@ export const HomePage = () => {
           </div>
         </div>
 
-        <div className={`${toggleTable === "expense" ? "block" : "hidden"}`}>
-          <ExpenseTable onEditExpense={handleEditExpense} />
+        <div
+          className={`${toggleTable === "expense" ? "block" : "hidden"} flex flex-col w-full gap-4 md:flex-row`}
+        >
+          <ExpenseTable
+            onEditExpense={handleEditExpense}
+            setOpenMonthModal={setOpenMonthModal}
+            openMonthModal={openMonthModal}
+            selectedMonth={selectedMonth}
+            setSelectedMonth={setSelectedMonth}
+          />
+
+          <div className="w-full p-2 rounded-2xl shadow-[0px_0px_3px_rgba(0,0,0,.5)]">
+            {/* graph header */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <FiBarChart2 size={24} className="text-red-400" />
+                <h4 className="font-bold">
+                  {toggleExpenseGraph === "month"
+                    ? "Monthly Expense"
+                    : "Yearly Expense"}
+                </h4>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <motion.button
+                  onClick={refreshExpenseBarBtn}
+                  className="cursor-pointer"
+                  animate={
+                    isMonthlyExpenseLoading || isYearlyExpenseLoading
+                      ? { rotate: 360 }
+                      : { rotate: 0 }
+                  }
+                  transition={
+                    isMonthlyExpenseLoading || isYearlyExpenseLoading
+                      ? {
+                          duration: 1,
+                          ease: "linear",
+                          repeat: Infinity,
+                        }
+                      : {
+                          duration: 0,
+                        }
+                  }
+                >
+                  <LucideRefreshCcw size={20} />
+                </motion.button>
+                {/* month year button */}
+                <div className="flex bg-gray-200 p-1 rounded-lg w-fit">
+                  {(["month", "year"] as const).map((item) => (
+                    <button
+                      key={item}
+                      onClick={() => setToggleExpenseGraph(item)}
+                      className="relative px-5 py-2 rounded-md capitalize font-medium"
+                    >
+                      {toggleExpenseGraph === item && (
+                        <motion.div
+                          layoutId="expense-graph-toggle"
+                          className="absolute inset-0 bg-white rounded-md shadow"
+                          transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 25,
+                          }}
+                        />
+                      )}
+
+                      <span
+                        className={`relative z-10 ${
+                          toggleExpenseGraph === item
+                            ? "text-black"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {item}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* month expense bar */}
+            <div
+              className={`${toggleExpenseGraph === "month" ? "block" : "hidden"}`}
+            >
+              <MonthlyExpenseBar />
+            </div>
+
+            {/* yearly expense bar */}
+            <div
+              className={`${toggleExpenseGraph === "year" ? "block" : "hidden"}`}
+            >
+              <YearlyExpenseBar />
+            </div>
+          </div>
         </div>
       </div>
     </main>

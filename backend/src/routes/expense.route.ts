@@ -4,6 +4,8 @@ import {
   addExpense,
   deleteExpense,
   getAllExpense,
+  getMonthlyExpense,
+  getYearlyExpense,
   updateExpense,
 } from "../controllers/expense.controller.js";
 
@@ -20,3 +22,7 @@ expenseRouter.put("/update/:id", checkAuth, updateExpense);
 
 // ? delete expense route
 expenseRouter.delete("/delete/:id", checkAuth, deleteExpense);
+
+expenseRouter.get("/monthly-expense-chart", checkAuth, getMonthlyExpense);
+
+expenseRouter.get("/yearly-expense-chart", checkAuth, getYearlyExpense);

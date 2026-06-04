@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { FaIndianRupeeSign } from "react-icons/fa6";
 import { FiCalendar } from "react-icons/fi";
 import { useIncomeStore } from "../../store/useIncomeStore";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import type { IncomeData } from "../../types/income";
 import { MonthSelectionModal } from "../MonthSelectionModal";
@@ -10,9 +10,19 @@ import { ChevronDown } from "lucide-react";
 
 interface IncomeTableProps {
   onEditIncome: (income: IncomeData) => void;
+  setOpenMonthModal: (open: boolean) => void;
+  openMonthModal: boolean;
+  setSelectedMonth: (m: string) => void;
+  selectedMonth: string;
 }
 
-export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
+export const IncomeTable = ({
+  onEditIncome,
+  setOpenMonthModal,
+  openMonthModal,
+  setSelectedMonth,
+  selectedMonth,
+}: IncomeTableProps) => {
   const {
     getMonthlyIncome,
     isIncomeLoading,
@@ -21,16 +31,6 @@ export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
     setMonth,
     monthlyIncomeTotal,
   } = useIncomeStore();
-
-  const currentMonthName = new Date().toLocaleString("en-US", {
-    month: "short",
-  });
-
-  const [openMonthModal, setOpenMonthModal] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
-    const savedMonth = localStorage.getItem("current_month");
-    return savedMonth ? savedMonth : currentMonthName;
-  });
 
   const incomeCategories: Record<string, string> = {
     Salary: "💼",
@@ -51,6 +51,8 @@ export const IncomeTable = ({ onEditIncome }: IncomeTableProps) => {
     localStorage.setItem("current_month", selectedMonth);
     localStorage.setItem("current_month_num", month.toString());
   }, [selectedMonth, month]);
+
+  console.log("monhtly income table : ", monthlyIncome);
 
   return (
     <div className="max-h-120 rounded-2xl border border-zinc-200 p-2 shadow-sm w-full">

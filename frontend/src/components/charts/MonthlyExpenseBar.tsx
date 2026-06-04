@@ -8,15 +8,16 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { useIncomeStore } from "../../store/useIncomeStore";
+import { useExpenseStore } from "../../store/useExpenseStore";
 
-const MonthlyIncomeBar = () => {
-  const { monthlyIncome, month } = useIncomeStore();
+export const MonthlyExpenseBar = () => {
+  const { monthlyExpense, month } = useExpenseStore();
+  console.log("monthly expense bar month : ", month);
 
   const currentDate = new Date();
   const year = currentDate.getFullYear();
 
-  // fallback to current month if localStorage is empty
+  // fallback to current month if no month selected
   const selectedMonth = isNaN(month) ? currentDate.getMonth() : month;
 
   // Get total days in selected month
@@ -27,16 +28,16 @@ const MonthlyIncomeBar = () => {
     amount: 0,
   }));
 
-  monthlyIncome?.forEach((income) => {
-    const incomeDate = new Date(income.date);
+  monthlyExpense?.forEach((expense) => {
+    const expenseDate = new Date(expense.date);
 
     // Filter by selected month
     if (
-      incomeDate.getMonth() === selectedMonth &&
-      incomeDate.getFullYear() === year
+      expenseDate.getMonth() === selectedMonth &&
+      expenseDate.getFullYear() === year
     ) {
-      const dayIndex = incomeDate.getDate() - 1;
-      chartData[dayIndex].amount += Number(income.amount);
+      const dayIndex = expenseDate.getDate() - 1;
+      chartData[dayIndex].amount += Number(expense.amount);
     }
   });
 
@@ -74,7 +75,7 @@ const MonthlyIncomeBar = () => {
           />
 
           <Tooltip
-            formatter={(value) => [`₹${value}`, "Income"]}
+            formatter={(value) => [`₹${value}`, "Expense"]}
             labelFormatter={(label) => `Day ${label}`}
             contentStyle={{
               backgroundColor: "#1F2937",
@@ -83,12 +84,12 @@ const MonthlyIncomeBar = () => {
               color: "#F9FAFB",
               fontSize: 13,
             }}
-            cursor={{ fill: "rgba(167,243,208,0.08)" }}
+            cursor={{ fill: "rgba(248,113,113,0.08)" }}
           />
 
           <Bar
             dataKey="amount"
-            fill="#A7F3D0"
+            fill="#F87171"
             radius={[8, 8, 0, 0]}
             stroke="none"
             activeBar={false}
@@ -99,4 +100,4 @@ const MonthlyIncomeBar = () => {
   );
 };
 
-export default MonthlyIncomeBar;
+export default MonthlyExpenseBar;

@@ -19,6 +19,8 @@ interface IncomeResource {
 }
 
 interface AuthStore {
+  isMonthlyIncomeLoading: boolean;
+  isYearlyIncomeLoading: boolean;
   isIncomeAdding: boolean;
   month: number;
   allIncomes: IncomeResource | null;
@@ -47,13 +49,15 @@ It means:
 }
 
 export const useIncomeStore = create<AuthStore>((set, get) => ({
-  month:
-    Number(localStorage.getItem("current_month_num")) || new Date().getMonth(),
+  month: Number(
+    localStorage.getItem("current_month_num") ?? new Date().getMonth(),
+  ),
   isIncomeAdding: false,
+  isMonthlyIncomeLoading: false,
+  isYearlyIncomeLoading: false,
   monthlyIncome: [],
   monthlyIncomeTotal: 0,
   monthlyIncomePerYear: [],
-
   allIncomes: {
     income: [],
     totalIncome: 0,
@@ -74,6 +78,7 @@ export const useIncomeStore = create<AuthStore>((set, get) => ({
       const res = await axiosInstance.post("/income/add", data);
       const month = get().month;
       useDashboardStore.getState().getDashboardSummary(month);
+      get().getYearlyIncome();
       set((state) => ({
         allIncomes: {
           income: [...(state.allIncomes?.income || []), res.data.income],
@@ -116,9 +121,11 @@ export const useIncomeStore = create<AuthStore>((set, get) => ({
   // ? get monthly income
   getMonthlyIncome: async (month: number) => {
     try {
+      set({ isMonthlyIncomeLoading: true });
       const res = await axiosInstance.get("/income/monthly-income-chart", {
         params: { month },
       });
+      console.log("income store month : ", month);
 
       set({ monthlyIncome: res.data.monthlyIncome });
       set({ monthlyIncomeTotal: res.data.monthlyTotal });
@@ -128,11 +135,14 @@ export const useIncomeStore = create<AuthStore>((set, get) => ({
         "add income error : ",
         err?.response?.data?.message || "Add Income failed",
       );
+    } finally {
+      set({ isMonthlyIncomeLoading: false });
     }
   },
 
   getYearlyIncome: async () => {
     try {
+      set({ isYearlyIncomeLoading: true });
       const res = await axiosInstance("/income/yearly-income-chart");
 
       set({ monthlyIncomePerYear: res.data });
@@ -142,6 +152,8 @@ export const useIncomeStore = create<AuthStore>((set, get) => ({
         "add income error : ",
         err?.response?.data?.message || "Add Income failed",
       );
+    } finally {
+      set({ isYearlyIncomeLoading: false });
     }
   },
 
@@ -162,6 +174,14 @@ export const useIncomeStore = create<AuthStore>((set, get) => ({
               totalIncome: res.data.totalIncome,
             }
           : null,
+      }));
+
+      set((state) => ({
+        monthlyIncome: state.monthlyIncome
+          ? state.monthlyIncome.filter((income) => income.id !== id)
+          : null,
+        monthlyIncomeTotal:
+          state.monthlyIncomeTotal - res.data.deletedIncome.amount,
       }));
     } catch (error) {
       const err = error as CustomError;
@@ -189,6 +209,13 @@ export const useIncomeStore = create<AuthStore>((set, get) => ({
               ),
               totalIncome: res.data.totalIncome,
             }
+          : null,
+      }));
+      set((state) => ({
+        monthlyIncome: state.monthlyIncome
+          ? state.monthlyIncome.map((income) =>
+              income.id === id ? res.data.updatedIncome : income,
+            )
           : null,
       }));
     } catch (error) {

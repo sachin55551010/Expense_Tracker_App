@@ -24,7 +24,7 @@ export const AddIncomeAndExpense = ({
           <span className="flex h-5.5 w-5.5 items-center justify-center rounded-full bg-emerald-500 text-white">
             <FaArrowTrendUp size={10} />
           </span>
-          Income
+          Add Income
         </button>
 
         <button
@@ -34,7 +34,7 @@ export const AddIncomeAndExpense = ({
           <span className="flex h-5.5 w-5.5 items-center justify-center rounded-full bg-red-500 text-white">
             <FaArrowTrendDown size={10} />
           </span>
-          Expense
+          Add Expense
         </button>
       </div>
 

@@ -179,3 +179,85 @@ export const deleteExpense = async (
     next(error);
   }
 };
+
+// ? get monthly expense
+export const getMonthlyExpense = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const month = Number(req.query.month);
+    const userId = req.user.id;
+    const newMonth = month + 1;
+
+    const currentYear = new Date().getFullYear();
+
+    const startOfMonth = new Date(currentYear, newMonth - 1, 1);
+
+    const endOfMonth = new Date(currentYear, newMonth, 1);
+
+    const monthlyExpense = await prisma.expense.findMany({
+      where: {
+        userId,
+        date: {
+          gt: startOfMonth,
+          lte: endOfMonth,
+        },
+      },
+    });
+    const calculateMonthlyExpense = await prisma.expense.aggregate({
+      where: {
+        userId,
+        date: {
+          gt: startOfMonth,
+          lte: endOfMonth,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    const monthlyExpenseTotal = calculateMonthlyExpense._sum.amount || 0;
+
+    res.status(200).json({ monthlyExpense, monthlyExpenseTotal });
+  } catch (error) {
+    console.log("get monthly expense error:", error);
+    next(error);
+  }
+};
+
+export const getYearlyExpense = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const yearlyExpense = await prisma.$queryRaw<
+      {
+        month: string;
+        expense: number;
+      }[]
+    >`
+WITH months AS (
+  SELECT generate_series(1, 12) AS month_num
+)
+SELECT
+  TO_CHAR(TO_DATE(month_num::text, 'MM'), 'Mon') AS month,
+  COALESCE(SUM(e.amount), 0) AS expense
+FROM months m
+LEFT JOIN "Expense" e
+  ON EXTRACT(MONTH FROM e.date) = m.month_num
+  AND EXTRACT(YEAR FROM e.date) = EXTRACT(YEAR FROM CURRENT_DATE)
+  AND e."userId" = ${req.user?.id}
+GROUP BY m.month_num
+ORDER BY m.month_num;
+`;
+
+    res.status(200).json(yearlyExpense);
+  } catch (error) {
+    console.log("get yearly expense error : ", error);
+    next(error);
+  }
+};
